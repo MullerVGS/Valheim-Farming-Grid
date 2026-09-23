@@ -6,7 +6,7 @@
     <RootNamespace>FarmingGrid</RootNamespace>
     <LangVersion>9.0</LangVersion>
     <Nullable>disable</Nullable>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <!-- References come from the game install (Iron Gate and BepInEx binaries are never committed). -->
     <ValheimDir Condition="'$(ValheimDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>

@@ -13,7 +13,7 @@ namespace FarmingGrid
     {
         public const string Guid = "dev.duenas.valheim.farminggrid";
         public const string Name = "Farming Grid";
-        public const string Version = "1.0.2";
+        public const string Version = "1.1.0";
 
         internal static ManualLogSource Log;
 
@@ -37,11 +37,36 @@ namespace FarmingGrid
 
         private void Update()
         {
-            if (!_settings.ToggleKey.Value.IsDown() || TextInputFocused())
+            if (TextInputFocused())
                 return;
-            _settings.Enabled.Value = !_settings.Enabled.Value;
-            Player.m_localPlayer?.Message(MessageHud.MessageType.TopLeft,
-                _settings.Enabled.Value ? "Farming grid enabled" : "Farming grid disabled");
+
+            if (_settings.ToggleKey.Value.IsDown())
+            {
+                _settings.Enabled.Value = !_settings.Enabled.Value;
+                Player.m_localPlayer?.Message(MessageHud.MessageType.TopLeft,
+                    _settings.Enabled.Value ? "Farming grid enabled" : "Farming grid disabled");
+            }
+
+            int delta = _settings.StepKeys.Value && _assist.Showing ? SnapKeyDelta() : 0;
+            if (delta != 0)
+            {
+                int step = _assist.CycleStep(delta);
+                Player.m_localPlayer?.Message(MessageHud.MessageType.TopLeft,
+                    step == 1 ? "Grid step: every cell" : $"Grid step: every {step} cells");
+            }
+        }
+
+        /// <summary>The game's snap point keys, read under the same conditions <c>Player.UpdatePlacementGhost</c> reads them.</summary>
+        private static int SnapKeyDelta()
+        {
+            if (ZInput.GetButton("JoyAltKeys") || Hud.IsPieceSelectionVisible()
+                || (Minimap.instance != null && Minimap.instance.m_mode == Minimap.MapMode.Large))
+                return 0;
+            if (ZInput.GetButtonDown("TabLeft") || (ZInput.GetButtonUp("JoyPrevSnap") && ZInput.GetButtonLastPressedTimer("JoyPrevSnap") < 0.33f))
+                return -1;
+            if (ZInput.GetButtonDown("TabRight") || (ZInput.GetButtonUp("JoyNextSnap") && ZInput.GetButtonLastPressedTimer("JoyNextSnap") < 0.33f))
+                return 1;
+            return 0;
         }
 
         private void OnDestroy()

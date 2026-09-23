@@ -24,6 +24,9 @@ namespace FarmingGrid.Core
 
         /// <summary>Radius, in cells, of the search for a free point around the nearest one.</summary>
         public int SearchRadius = 2;
+
+        /// <summary>Grid step in cells: 2 plants every other cell, 3 every third and so on. The spacing check still uses the real minimum.</summary>
+        public int Step = 1;
     }
 
     /// <summary>The grid inferred from the field, ready to draw.</summary>
@@ -82,6 +85,7 @@ namespace FarmingGrid.Core
             float cell = Spacing.Cell(ghost, anchor, settings.Rule, settings.ExtraSpacing);
             if (cell <= Spacing.Tolerance)
                 return Free(ghost, nearby, settings);
+            cell *= Math.Max(1, settings.Step);
 
             if (Vec2.Distance(ghost.Position, anchor.Position) > cell * settings.ReachCells)
                 return Free(ghost, nearby, settings);

@@ -8,6 +8,8 @@ that snaps saplings to a grid when planting with the cultivator.
 - Draws the grid on the ground and a grow-radius circle: green when the sapling will grow, red when it won't.
 - Optionally blocks spots where the sapling would not grow (too close to another crop, an obstacle or a roof).
 - Hold **Shift** (the game's free placement key) to plant without snapping.
+- Press **Q/E** (the game's snap point keys, so your own bindings apply) to widen the grid step: every cell, every 2nd,
+  every 3rd, then back to every cell.
 
 Only needed on your own client.
 
@@ -30,6 +32,8 @@ with [Configuration Manager](https://thunderstore.io/c/valheim/p/Azumatt/Officia
 | Orientation | `Auto` | `Auto` follows the field; `Fixed` uses the fixed angle |
 | Fixed angle (degrees) | `0` | Grid angle for `Fixed`; 0 = north |
 | Reach (cells) | `2.5` | How far from the field the sapling is still snapped |
+| Change step with snap keys | `true` | Q/E (or your rebinds) cycle the grid step while planting |
+| Max step | `3` | Largest step before it wraps back to every cell |
 | Block spots without room | `true` | Prevents planting where the sapling would not grow |
 | Extra crops | empty | `Prefab: radius, ...` for modded plantables without a `Plant` component |
 

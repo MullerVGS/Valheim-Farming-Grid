@@ -17,6 +17,8 @@ namespace FarmingGrid
         public readonly ConfigEntry<GridOrientation> Orientation;
         public readonly ConfigEntry<float> FixedAngle;
         public readonly ConfigEntry<float> ReachCells;
+        public readonly ConfigEntry<bool> StepKeys;
+        public readonly ConfigEntry<int> MaxStep;
 
         public readonly ConfigEntry<bool> BlockUnhealthy;
 
@@ -55,6 +57,11 @@ namespace FarmingGrid
                 new ConfigDescription("Grid angle when orientation is Fixed; 0 = aligned to north.", new AcceptableValueRange<float>(0f, 90f)));
             ReachCells = config.Bind("2 - Spacing", "Reach (cells)", 2.5f,
                 new ConfigDescription("How many cells away from the nearest crop the sapling is still pulled onto the grid.", new AcceptableValueRange<float>(1f, 6f)));
+            StepKeys = config.Bind("2 - Spacing", "Change step with snap keys", true,
+                "The game's keys for cycling snap points (Q/E by default, rebindable in the game's controls) change the grid step while planting: " +
+                "step 2 plants every other cell, 3 every third. Past the last step it wraps back to 1.");
+            MaxStep = config.Bind("2 - Spacing", "Max step", 3,
+                new ConfigDescription("Largest grid step the snap keys cycle through.", new AcceptableValueRange<int>(2, 6)));
 
             BlockUnhealthy = config.Bind("3 - Validation", "Block spots without room", true,
                 "Prevents planting where the sapling would not grow: pressed against another crop, with an obstacle in its grow radius or under a roof.");
@@ -83,8 +90,9 @@ namespace FarmingGrid
 
         public IReadOnlyDictionary<string, float> CustomCrops => _customCrops;
 
-        public SnapSettings Snap()
+        public SnapSettings Snap(int step)
         {
+            _snap.Step = step;
             _snap.Rule = Rule.Value;
             _snap.ExtraSpacing = ExtraSpacing.Value;
             _snap.Orientation = Orientation.Value;

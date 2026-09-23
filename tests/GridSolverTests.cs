@@ -200,5 +200,30 @@ namespace FarmingGrid.Tests
 
             Near(new Vec2(0f, Cell), result.Position);
         }
+
+        [Fact]
+        public void Step_two_skips_every_other_cell()
+        {
+            var nearby = new List<Crop> { CropAt(0f, 0f), CropAt(Cell, 0f) };
+
+            // Aiming one cell above the first crop lands two cells above it.
+            var result = GridSolver.Solve(CropAt(0.05f, Cell * 1.2f), nearby, new SnapSettings { Step = 2 });
+
+            Assert.True(result.Snapped);
+            Assert.False(result.Crowded);
+            Near(new Vec2(0f, 2 * Cell), result.Position);
+        }
+
+        [Fact]
+        public void Step_keeps_the_axis_of_a_field_planted_at_step_one()
+        {
+            var axis = Vec2.FromAngle(30f);
+            var nearby = new List<Crop> { CropAt(0f, 0f), new Crop(axis * Cell, Grow, Body) };
+            var target = axis.Perpendicular * (3 * Cell);
+
+            var result = GridSolver.Solve(new Crop(target + new Vec2(0.1f, -0.1f), Grow, Body), nearby, new SnapSettings { Step = 3 });
+
+            Near(target, result.Position);
+        }
     }
 }

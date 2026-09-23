@@ -34,6 +34,8 @@ namespace FarmingGrid.Game
         private string _scannedPrefab;
         private Vector3 _scannedAt;
         private float _scannedTime;
+        private int _step = 1;
+        private int _shownFrame = -10;
 
         public PlantingAssist(Settings settings)
         {
@@ -43,6 +45,17 @@ namespace FarmingGrid.Game
             _renderer = new GridRenderer(settings);
             if (BlockedByPlayers == null)
                 Plugin.Log.LogWarning("Player.CheckPlacementGhostVSPlayers does not exist in this version; skipping the player-on-sapling check.");
+        }
+
+        /// <summary>A sapling ghost was on the grid last frame, so the snap keys belong to us.</summary>
+        public bool Showing => Time.frameCount - _shownFrame <= 1;
+
+        /// <summary>Moves the grid step by <paramref name="delta"/>, wrapping around at both ends.</summary>
+        public int CycleStep(int delta)
+        {
+            int max = _settings.MaxStep.Value;
+            _step = ((Math.Min(_step, max) - 1 + delta) % max + max) % max + 1;
+            return _step;
         }
 
         public void Hide() => _renderer.Hide();
@@ -58,10 +71,11 @@ namespace FarmingGrid.Game
                 return;
             }
 
+            _shownFrame = Time.frameCount;
             var piece = ghost.GetComponent<Piece>();
             Vector3 raw = ghost.transform.position;
             float grow = ghostCrop.GrowRadius;
-            SnapSettings snap = _settings.Snap();
+            SnapSettings snap = _settings.Snap(Math.Min(_step, _settings.MaxStep.Value));
 
             IReadOnlyList<Crop> nearby = Nearby(ghost.name, raw, ghostCrop, snap);
             SnapResult result = FreePlacementHeld(player)
@@ -160,7 +174,7 @@ namespace FarmingGrid.Game
                 return _nearby;
 
             // Widest cell the field around this sapling can have, times reach + search + margin.
-            float widestCell = 2f * ghost.GrowRadius + snap.ExtraSpacing + 0.5f;
+            float widestCell = (2f * ghost.GrowRadius + snap.ExtraSpacing + 0.5f) * snap.Step;
             float radius = widestCell * (snap.ReachCells + snap.SearchRadius + 1.5f);
 
             _nearby.Clear();
