@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>FarmingGrid</AssemblyName>
+    <RootNamespace>FarmingGrid</RootNamespace>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <Version>1.0.2</Version>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- References come from the game install (Iron Gate and BepInEx binaries are never committed). -->
+    <ValheimDir Condition="'$(ValheimDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+    <ValheimManaged Condition="'$(ValheimManaged)' == ''">$(ValheimDir)/valheim_Data/Managed</ValheimManaged>
+    <BepInExCore Condition="'$(BepInExCore)' == ''">$(ValheimDir)/BepInEx/core</BepInExCore>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="../tests/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="assembly_valheim" HintPath="$(ValheimManaged)/assembly_valheim.dll" Private="false" />
+    <Reference Include="assembly_utils" HintPath="$(ValheimManaged)/assembly_utils.dll" Private="false" />
+    <Reference Include="UnityEngine" HintPath="$(ValheimManaged)/UnityEngine.dll" Private="false" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(ValheimManaged)/UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="UnityEngine.PhysicsModule" HintPath="$(ValheimManaged)/UnityEngine.PhysicsModule.dll" Private="false" />
+    <Reference Include="UnityEngine.InputLegacyModule" HintPath="$(ValheimManaged)/UnityEngine.InputLegacyModule.dll" Private="false" />
+    <Reference Include="BepInEx" HintPath="$(BepInExCore)/BepInEx.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(BepInExCore)/0Harmony.dll" Private="false" />
+  </ItemGroup>
+
+</Project>
