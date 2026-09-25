@@ -10,6 +10,8 @@ that snaps saplings to a grid when planting with the cultivator.
 - Hold **Shift** (the game's free placement key) to plant without snapping.
 - Press **Q/E** (the game's snap point keys, so your own bindings apply) to widen the grid step: every cell, every 2nd,
   every 3rd, then back to every cell.
+- Hold the place button to keep planting at the game's pace: it waits while the spot is invalid and stops when stamina or
+  seeds run out. Release and press again to start over.
 
 Only needed on your own client.
 
@@ -27,6 +29,7 @@ with [Configuration Manager](https://thunderstore.io/c/valheim/p/Azumatt/Officia
 | --- | --- | --- |
 | Enabled | `true` | Turns snapping on |
 | Toggle key | empty | Shortcut to toggle snapping in game |
+| Hold to keep planting | `true` | Holding the place button keeps planting until stamina or seeds run out |
 | Rule | `Exact` | `Exact` = the minimum distance the game requires; `Wide` = twice the largest grow radius |
 | Extra spacing (m) | `0.05` | Space added to the minimum distance |
 | Orientation | `Auto` | `Auto` follows the field; `Fixed` uses the fixed angle |

@@ -36,6 +36,8 @@ namespace FarmingGrid.Game
         private float _scannedTime;
         private int _step = 1;
         private int _shownFrame = -10;
+        private int _saplingFrame = -10;
+        private bool _spotValid;
 
         public PlantingAssist(Settings settings)
         {
@@ -49,6 +51,12 @@ namespace FarmingGrid.Game
 
         /// <summary>A sapling ghost was on the grid last frame, so the snap keys belong to us.</summary>
         public bool Showing => Time.frameCount - _shownFrame <= 1;
+
+        /// <summary>The build ghost was a sapling last frame, with or without the grid.</summary>
+        public bool OnSapling => Time.frameCount - _saplingFrame <= 1;
+
+        /// <summary>The sapling ghost's final status, after the grid and the room checks, was <c>Valid</c>.</summary>
+        public bool SpotValid => OnSapling && _spotValid;
 
         /// <summary>Moves the grid step by <paramref name="delta"/>, wrapping around at both ends.</summary>
         public int CycleStep(int delta)
@@ -64,8 +72,15 @@ namespace FarmingGrid.Game
 
         public void AfterGhostUpdate(Player player, GameObject ghost, ref Player.PlacementStatus status, bool flashGuardStone)
         {
-            if (!_settings.Enabled.Value || ghost == null || !ghost.activeSelf || status == Player.PlacementStatus.NoRayHits
+            if (ghost == null || !ghost.activeSelf || status == Player.PlacementStatus.NoRayHits
                 || !_catalog.TryGetGhost(ghost, out Crop ghostCrop))
+            {
+                _renderer.Hide();
+                return;
+            }
+            _saplingFrame = Time.frameCount;
+            _spotValid = status == Player.PlacementStatus.Valid;
+            if (!_settings.Enabled.Value)
             {
                 _renderer.Hide();
                 return;
@@ -118,7 +133,8 @@ namespace FarmingGrid.Game
                 }
             }
             Explain(ghost.name, ghostCrop, reason);
-            piece.SetInvalidPlacementHeightlight(status != Player.PlacementStatus.Valid);
+            _spotValid = status == Player.PlacementStatus.Valid;
+            piece.SetInvalidPlacementHeightlight(!_spotValid);
 
             if (result.Snapped)
                 _renderer.DrawGrid(result.Lattice, final);

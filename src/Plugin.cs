@@ -13,7 +13,7 @@ namespace FarmingGrid
     {
         public const string Guid = "dev.duenas.valheim.farminggrid";
         public const string Name = "Farming Grid";
-        public const string Version = "1.1.0";
+        public const string Version = "1.2.0";
 
         internal static ManualLogSource Log;
 
@@ -21,6 +21,7 @@ namespace FarmingGrid
         private Harmony _harmony;
         private Settings _settings;
         private PlantingAssist _assist;
+        private HoldPlanting _hold;
         private bool _failed;
 
         private void Awake()
@@ -29,10 +30,12 @@ namespace FarmingGrid
             Log = Logger;
             _settings = new Settings(Config, Logger);
             _assist = new PlantingAssist(_settings);
+            _hold = new HoldPlanting(_settings, _assist);
             _settings.Enabled.SettingChanged += (_, __) => _assist.Hide();
 
             _harmony = new Harmony(Guid);
             _harmony.PatchAll(typeof(PlacementPatch));
+            _harmony.PatchAll(typeof(HoldPlacePatch));
         }
 
         private void Update()
@@ -80,7 +83,7 @@ namespace FarmingGrid
             => Console.IsVisible() || (Chat.instance != null && Chat.instance.HasFocus()) || TextInput.IsVisible();
 
         /// <summary>
-        /// An exception here would escape the player's LateUpdate every frame. If one happens,
+        /// An exception here would escape the player's LateUpdate every frame (or Update, for the hold). If one happens,
         /// the mod logs it once, hides the grid and gets out of the way: the game carries on with normal placement.
         /// </summary>
         internal static void OnGhostUpdated(Player player, GameObject ghost, ref Player.PlacementStatus status, bool flashGuardStone)
@@ -94,11 +97,39 @@ namespace FarmingGrid
             }
             catch (Exception e)
             {
-                self._failed = true;
-                Log.LogError($"Farming Grid disabled for this session after an unexpected error:\n{e}");
-                try { self._assist.Hide(); } catch { /* already getting out of the way */ }
+                self.Fail(e);
             }
         }
+
+        /// <summary>Runs before the game reads the place button, so a press set here is handled this very frame.</summary>
+        internal static void BeforePlacement(Player player, bool takeInput)
+        {
+            Plugin self = _instance;
+            if (self == null || self._failed || player != Player.m_localPlayer)
+                return;
+            try
+            {
+                self._hold.BeforePlacement(player, takeInput);
+            }
+            catch (Exception e)
+            {
+                self.Fail(e);
+            }
+        }
+
+        private void Fail(Exception e)
+        {
+            _failed = true;
+            Log.LogError($"Farming Grid disabled for this session after an unexpected error:\n{e}");
+            try { _assist.Hide(); } catch { /* already getting out of the way */ }
+        }
+    }
+
+    [HarmonyPatch(typeof(Player), "UpdatePlacement")]
+    internal static class HoldPlacePatch
+    {
+        [HarmonyPrefix]
+        private static void Prefix(Player __instance, bool takeInput) => Plugin.BeforePlacement(__instance, takeInput);
     }
 
     [HarmonyPatch(typeof(Player), "UpdatePlacementGhost")]

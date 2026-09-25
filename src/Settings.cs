@@ -11,6 +11,7 @@ namespace FarmingGrid
     {
         public readonly ConfigEntry<bool> Enabled;
         public readonly ConfigEntry<KeyboardShortcut> ToggleKey;
+        public readonly ConfigEntry<bool> HoldToPlant;
 
         public readonly ConfigEntry<SpacingRule> Rule;
         public readonly ConfigEntry<float> ExtraSpacing;
@@ -45,6 +46,9 @@ namespace FarmingGrid
                 "Snaps saplings to a grid when planting. Hold the game's free placement key (Shift) to plant freely on the spot.");
             ToggleKey = config.Bind("1 - General", "Toggle key", KeyboardShortcut.Empty,
                 "Shortcut to toggle \"Enabled\" in game. Empty = no shortcut.");
+            HoldToPlant = config.Bind("1 - General", "Hold to keep planting", true,
+                "Holding the place button keeps planting saplings at the game's pace, waiting while the spot is invalid. " +
+                "Stops when stamina runs out, seeds run out or the button is released. Works with the grid on or off.");
 
             Rule = config.Bind("2 - Spacing", "Rule", SpacingRule.Exact,
                 "Exact: the minimum distance the game itself requires for both plants to grow (grow radius against the neighbour's body).\n" +
