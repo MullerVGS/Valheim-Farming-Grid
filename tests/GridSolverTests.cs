@@ -225,5 +225,79 @@ namespace FarmingGrid.Tests
 
             Near(target, result.Position);
         }
+    
+
+        private static List<Crop> Block(int columns, int rows, float x0 = 0f, float z0 = 0f, int species = 0)
+        {
+            var crops = new List<Crop>();
+            for (int u = 0; u < columns; u++)
+                for (int v = 0; v < rows; v++)
+                    crops.Add(new Crop(new Vec2(x0 + u * Cell, z0 + v * Cell), Grow, Body, Garden, species));
+            return crops;
+        }
+
+        [Fact]
+        public void Stray_crop_nearest_to_the_aim_does_not_shift_the_grid()
+        {
+            // A field of 4 x 3 and one sapling planted freely past its end, a third of a cell off the grid.
+            var nearby = Block(4, 3);
+            nearby.Add(new Crop(new Vec2(4.3f * Cell, 0f), Grow, Body, Garden));
+
+            var result = GridSolver.Solve(new Crop(new Vec2(4.35f * Cell, Cell), Grow, Body, Garden), nearby, Settings());
+
+            Assert.True(result.Snapped);
+            Near(new Vec2(4f * Cell, Cell), result.Position);
+        }
+
+        [Fact]
+        public void Gaps_in_the_field_do_not_tilt_the_grid_diagonally()
+        {
+            // Checkerboard: every nearest neighbour is on the diagonal, but rows two cells apart still set the axis.
+            var nearby = new List<Crop> { CropAt(0f, 0f), CropAt(2 * Cell, 0f), CropAt(Cell, Cell), CropAt(0f, 2 * Cell), CropAt(2 * Cell, 2 * Cell) };
+
+            var result = GridSolver.Solve(CropAt(Cell, 0.1f), nearby, Settings());
+
+            Assert.True(result.Snapped);
+            Assert.False(result.Crowded);
+            Near(new Vec2(Cell, 0f), result.Position);
+        }
+
+        [Fact]
+        public void Follows_the_same_plant_over_a_nearer_field_of_another()
+        {
+            const int Carrot = 11, Turnip = 22;
+            var nearby = Block(4, 3, species: Carrot);
+            nearby.AddRange(Block(3, 3, x0: 5.5f * Cell, z0: 0.5f * Cell, species: Turnip));
+
+            var ghost = new Crop(new Vec2(4.6f * Cell, Cell), Grow, Body, Garden, Carrot);
+            var result = GridSolver.Solve(ghost, nearby, Settings());
+
+            Near(new Vec2(4f * Cell, Cell), result.Position);
+        }
+
+        [Fact]
+        public void Another_plant_of_the_family_still_guides_a_new_species()
+        {
+            var nearby = Block(3, 2, species: 22);
+
+            var ghost = new Crop(new Vec2(0.1f, 2.1f * Cell), Grow, Body, Garden, 11);
+            var result = GridSolver.Solve(ghost, nearby, Settings());
+
+            Assert.True(result.Snapped);
+            Near(new Vec2(0f, 2f * Cell), result.Position);
+        }
+
+        [Fact]
+        public void One_crop_slightly_off_barely_moves_the_grid()
+        {
+            // The crop nearest to the aim is 0.15 cell off; the other eight outvote it.
+            var nearby = Block(3, 3);
+            nearby[6] = new Crop(new Vec2(2f * Cell, 0.15f * Cell), Grow, Body, Garden);
+
+            var result = GridSolver.Solve(new Crop(new Vec2(3f * Cell, 0.1f), Grow, Body, Garden), nearby, Settings());
+
+            Assert.InRange(result.Position.X, 3f * Cell - 0.05f * Cell, 3f * Cell + 0.05f * Cell);
+            Assert.InRange(result.Position.Z, -0.05f * Cell, 0.05f * Cell);
+        }
     }
 }

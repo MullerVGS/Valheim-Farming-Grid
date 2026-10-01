@@ -13,7 +13,7 @@ namespace FarmingGrid
     {
         public const string Guid = "dev.duenas.valheim.farminggrid";
         public const string Name = "Farming Grid";
-        public const string Version = "1.3.0";
+        public const string Version = "1.4.0";
 
         internal static ManualLogSource Log;
 

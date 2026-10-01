@@ -20,12 +20,14 @@ namespace FarmingGrid.Game
             public readonly float Grow;
             public readonly float Body;
             public readonly int Family;
+            public readonly int Species;
 
-            public Sapling(float grow, float body, int family)
+            public Sapling(float grow, float body, int family, int species)
             {
                 Grow = grow;
                 Body = body;
                 Family = family;
+                Species = species;
             }
         }
 
@@ -51,12 +53,12 @@ namespace FarmingGrid.Game
             var plant = ghost.GetComponent<Plant>();
             if (plant != null)
             {
-                crop = new Crop(position, plant.m_growRadius, BodyRadius(ghost, ownOnly: true), FamilyOf(plant));
+                crop = new Crop(position, plant.m_growRadius, BodyRadius(ghost, ownOnly: true), FamilyOf(plant), SpeciesOf(ghost));
                 return plant.m_growRadius > 0f;
             }
             if (_settings.CustomCrops.TryGetValue(Utils.GetPrefabName(ghost), out float radius))
             {
-                crop = new Crop(position, radius, BodyRadius(ghost, ownOnly: false), Wild);
+                crop = new Crop(position, radius, BodyRadius(ghost, ownOnly: false), Wild, SpeciesOf(ghost));
                 return true;
             }
             crop = default;
@@ -78,19 +80,19 @@ namespace FarmingGrid.Game
             var plant = go.GetComponent<Plant>();
             if (plant != null)
             {
-                crop = new Crop(position, plant.m_growRadius, BodyRadius(go, ownOnly: true), FamilyOf(plant));
+                crop = new Crop(position, plant.m_growRadius, BodyRadius(go, ownOnly: true), FamilyOf(plant), SpeciesOf(go));
                 return true;
             }
 
             string prefab = Utils.GetPrefabName(go);
             if (GrownFrom(prefab, out Sapling sapling) && sapling.Family == family)
             {
-                crop = Crop.Grown(position, BodyRadius(go, ownOnly: false), sapling.Grow, sapling.Body, sapling.Family);
+                crop = Crop.Grown(position, BodyRadius(go, ownOnly: false), sapling.Grow, sapling.Body, sapling.Family, sapling.Species);
                 return true;
             }
             if (family == Wild && _settings.CustomCrops.TryGetValue(prefab, out float radius))
             {
-                crop = new Crop(position, radius, BodyRadius(go, ownOnly: false), Wild);
+                crop = new Crop(position, radius, BodyRadius(go, ownOnly: false), Wild, prefab.GetStableHashCode());
                 return true;
             }
 
@@ -99,6 +101,9 @@ namespace FarmingGrid.Game
         }
 
         private static int FamilyOf(Plant plant) => plant.m_needCultivatedGround ? Cultivated : Wild;
+
+        /// <summary>The sapling's prefab: the ghost, the planted sapling and its harvest all share it.</summary>
+        private static int SpeciesOf(GameObject sapling) => Utils.GetPrefabName(sapling).GetStableHashCode();
 
         private bool GrownFrom(string prefab, out Sapling sapling)
         {
@@ -118,7 +123,7 @@ namespace FarmingGrid.Game
                 var plant = prefab != null ? prefab.GetComponent<Plant>() : null;
                 if (plant == null || plant.m_grownPrefabs == null)
                     continue;
-                var sapling = new Sapling(plant.m_growRadius, BodyRadius(prefab, ownOnly: true), FamilyOf(plant));
+                var sapling = new Sapling(plant.m_growRadius, BodyRadius(prefab, ownOnly: true), FamilyOf(plant), SpeciesOf(prefab));
                 foreach (GameObject grown in plant.m_grownPrefabs)
                 {
                     if (grown == null || (_grownFrom.TryGetValue(grown.name, out Sapling known) && known.Grow >= sapling.Grow))

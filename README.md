@@ -4,6 +4,9 @@ Client-side [BepInEx](https://thunderstore.io/c/valheim/p/denikson/BepInExPack_V
 that snaps saplings to a grid when planting with the cultivator.
 
 - The first sapling goes where you aim, the second orbits around it, and from the third on the grid follows your field.
+- The grid is fitted to the crops around your aim, so a sapling planted slightly off, or a gap in the field, does not
+  shift or tilt it. It follows the field of the same plant first (carrots line up with carrots even next to a turnip
+  field), then any crop of the same kind.
 - Snaps to the free grid point closest to your aim.
 - Draws the grid on the ground and a grow-radius circle: green when the sapling will grow, red when it won't.
 - Optionally blocks spots where the sapling would not grow (too close to another crop, an obstacle or a roof).

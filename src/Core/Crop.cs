@@ -10,6 +10,7 @@ namespace FarmingGrid.Core
     /// <see cref="LatticeGrow"/> and <see cref="LatticeBody"/> belong to the sapling it came from: they set the grid step,
     /// so a harvested and replanted field lands on the same points.
     /// <see cref="Family"/> separates cultivated-ground crops from everything else (trees, bushes): only the same family becomes an anchor.
+    /// <see cref="Species"/> identifies the sapling it came from (zero = unknown): the grid follows the field of the same plant first.
     /// </summary>
     public readonly struct Crop
     {
@@ -19,13 +20,14 @@ namespace FarmingGrid.Core
         public readonly float LatticeGrow;
         public readonly float LatticeBody;
         public readonly int Family;
+        public readonly int Species;
 
-        public Crop(Vec2 position, float growRadius, float bodyRadius, int family = 0)
-            : this(position, growRadius, bodyRadius, growRadius, bodyRadius, family)
+        public Crop(Vec2 position, float growRadius, float bodyRadius, int family = 0, int species = 0)
+            : this(position, growRadius, bodyRadius, growRadius, bodyRadius, family, species)
         {
         }
 
-        private Crop(Vec2 position, float growRadius, float bodyRadius, float latticeGrow, float latticeBody, int family)
+        private Crop(Vec2 position, float growRadius, float bodyRadius, float latticeGrow, float latticeBody, int family, int species)
         {
             Position = position;
             GrowRadius = growRadius;
@@ -33,13 +35,14 @@ namespace FarmingGrid.Core
             LatticeGrow = latticeGrow;
             LatticeBody = latticeBody;
             Family = family;
+            Species = species;
         }
 
         /// <summary>Fully grown harvest: no longer grows, only occupies its spot with its body; the grid step is the sapling's.</summary>
-        public static Crop Grown(Vec2 position, float bodyRadius, float saplingGrow, float saplingBody, int family)
-            => new Crop(position, 0f, bodyRadius, saplingGrow, saplingBody, family);
+        public static Crop Grown(Vec2 position, float bodyRadius, float saplingGrow, float saplingBody, int family, int species = 0)
+            => new Crop(position, 0f, bodyRadius, saplingGrow, saplingBody, family, species);
 
-        public Crop At(Vec2 position) => new Crop(position, GrowRadius, BodyRadius, LatticeGrow, LatticeBody, Family);
+        public Crop At(Vec2 position) => new Crop(position, GrowRadius, BodyRadius, LatticeGrow, LatticeBody, Family, Species);
     }
 
     public enum SpacingRule
