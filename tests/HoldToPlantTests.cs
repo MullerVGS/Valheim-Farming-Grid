@@ -49,11 +49,28 @@ namespace FarmingGrid.Tests
         }
 
         [Fact]
-        public void Stops_when_stamina_runs_out_until_released()
+        public void Rests_when_stamina_runs_out_and_resumes_once_rested()
         {
             var hold = PressedOnSapling();
 
-            Assert.Equal(HoldAction.OutOfStamina, hold.Next(Holding(stamina: false)));
+            Assert.Equal(HoldAction.Rest, hold.Next(Holding(stamina: false)));
+            Assert.True(hold.Resting);
+            Assert.Equal(HoldAction.None, hold.Next(Holding()));
+
+            var rested = Holding();
+            rested.Rested = true;
+            Assert.Equal(HoldAction.Place, hold.Next(rested));
+            Assert.False(hold.Resting);
+        }
+
+        [Fact]
+        public void Stops_when_even_a_rested_bar_is_not_enough_until_released()
+        {
+            var hold = PressedOnSapling();
+            var broke = Holding(stamina: false);
+            broke.Rested = true;
+
+            Assert.Equal(HoldAction.OutOfStamina, hold.Next(broke));
             Assert.False(hold.Holding);
             Assert.Equal(HoldAction.None, hold.Next(Holding()));
 
@@ -62,6 +79,16 @@ namespace FarmingGrid.Tests
             press.Pressed = true;
             hold.Next(press);
             Assert.Equal(HoldAction.Place, hold.Next(Holding()));
+        }
+
+        [Fact]
+        public void Releasing_while_resting_forgets_the_rest()
+        {
+            var hold = PressedOnSapling();
+            hold.Next(Holding(stamina: false));
+            hold.Next(new HoldFrame());
+
+            Assert.False(hold.Resting);
         }
 
         [Fact]

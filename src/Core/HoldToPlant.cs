@@ -5,7 +5,9 @@ namespace FarmingGrid.Core
         None,
         /// <summary>Press place for the game this frame.</summary>
         Place,
-        /// <summary>Stopped because stamina ran out; the button has to be released to start again.</summary>
+        /// <summary>Stamina ran out; planting pauses until it is back at the point that keeps the pace highest.</summary>
+        Rest,
+        /// <summary>Stopped because not even a full bar pays for a sapling; the button has to be released to start again.</summary>
         OutOfStamina,
     }
 
@@ -22,6 +24,8 @@ namespace FarmingGrid.Core
         /// <summary>The ghost sits on a spot the game would accept.</summary>
         public bool SpotValid;
         public bool HaveStamina;
+        /// <summary>Stamina is back at the point where resuming pays off (only read while resting).</summary>
+        public bool Rested;
         /// <summary>When the game last used the tool; it only changes when a placement succeeded.</summary>
         public float LastToolUse;
     }
@@ -29,16 +33,18 @@ namespace FarmingGrid.Core
     /// <summary>
     /// Keeps planting while the place button is held. The first sapling is the game's own click;
     /// after that it presses again every time the game is ready, waits while the spot is invalid,
-    /// and stops for good (until released) when stamina runs out, the ghost is no longer a sapling
-    /// or the game refused a press (missing seeds, for instance).
+    /// rests when stamina runs out, and stops for good (until released) when the ghost is no longer
+    /// a sapling or the game refused a press (missing seeds, for instance).
     /// </summary>
     public sealed class HoldToPlant
     {
         private bool _holding;
         private bool _armed;
         private float _armedAt;
+        private bool _resting;
 
         public bool Holding => _holding;
+        public bool Resting => _resting;
 
         public HoldAction Next(in HoldFrame frame)
         {
@@ -51,6 +57,7 @@ namespace FarmingGrid.Core
             {
                 _holding = frame.OnSapling;
                 _armed = false;
+                _resting = false;
                 return HoldAction.None;
             }
             if (!_holding)
@@ -71,12 +78,23 @@ namespace FarmingGrid.Core
                 Stop();
                 return HoldAction.None;
             }
+            if (_resting)
+            {
+                if (!frame.Rested)
+                    return HoldAction.None;
+                _resting = false;
+            }
             if (!frame.Ready || !frame.SpotValid)
                 return HoldAction.None;
             if (!frame.HaveStamina)
             {
-                Stop();
-                return HoldAction.OutOfStamina;
+                if (frame.Rested)
+                {
+                    Stop();
+                    return HoldAction.OutOfStamina;
+                }
+                _resting = true;
+                return HoldAction.Rest;
             }
 
             _armed = true;
@@ -88,6 +106,7 @@ namespace FarmingGrid.Core
         {
             _holding = false;
             _armed = false;
+            _resting = false;
         }
     }
 }

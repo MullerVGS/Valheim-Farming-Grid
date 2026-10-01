@@ -48,7 +48,8 @@ namespace FarmingGrid
                 "Shortcut to toggle \"Enabled\" in game. Empty = no shortcut.");
             HoldToPlant = config.Bind("1 - General", "Hold to keep planting", true,
                 "Holding the place button keeps planting saplings at the game's pace, waiting while the spot is invalid. " +
-                "Stops when stamina runs out, seeds run out or the button is released. Works with the grid on or off.");
+                "Out of stamina it rests and resumes at the stamina that plants the most saplings per second. " +
+                "Stops when seeds run out or the button is released. Works with the grid on or off.");
 
             Rule = config.Bind("2 - Spacing", "Rule", SpacingRule.Exact,
                 "Exact: the minimum distance the game itself requires for both plants to grow (grow radius against the neighbour's body).\n" +
